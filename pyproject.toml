@@ -18,5 +18,13 @@ Homepage = "https://github.com/bnprks/pypi-deploy-test"
 Issues = "https://github.com/bnprks/pypi-deploy-test/issues"
 
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = [
+    "setuptools>=61.0",
+    "pybind11>=2.10.0",
+]
 build-backend = "setuptools.build_meta"
+
+[tool.cibuildwheel]
+skip = "*-musllinux_* pp*"
+[tool.cibuildwheel.linux]
+archs = ["auto64"]
