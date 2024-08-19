@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
 
     environment:
-      name: testpypi
+      name: pypi
       url: https://test.pypi.org/p/example_package_1_bnprks
 
     permissions:
