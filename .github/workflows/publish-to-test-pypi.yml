@@ -35,7 +35,7 @@ jobs:
   publish-to-testpypi:
     name: Publish Python 🐍 distribution 📦 to TestPyPI
     needs:
-    - build
+    - build-wheels
     runs-on: ubuntu-latest
 
     environment:
