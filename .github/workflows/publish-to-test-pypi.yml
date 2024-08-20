@@ -1,4 +1,4 @@
-name: Publish Python 🐍 distribution 📦 to TestPyPI
+name: Publish Python package to PyPI
 
 #on: workflow_dispatch
 on: push
@@ -10,7 +10,8 @@ jobs:
     strategy:
       matrix:
         # macos-13 is an intel runner, macos-14 is apple silicon
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+        # os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+        os: [windows-latest]
 
     steps:
       - uses: actions/checkout@v4
@@ -64,7 +65,7 @@ jobs:
         env:
           CIBW_ENVIRONMENT_LINUX: >-
             CXX="ccache g++"
-            LIB_CACHE="$(pwd)/lib-cache"
+            LIB_CACHE="${{ steps.work-dir.outputs.dir }}/lib-cache"
           CIBW_BEFORE_ALL_LINUX: >
             LIB_CACHE=/host/$LIB_CACHE bash {package}/scripts/install_ccache.sh &&
             LIB_CACHE=/host/$LIB_CACHE bash {package}/scripts/install_eigen.sh &&
@@ -73,7 +74,7 @@ jobs:
 
           CIBW_ENVIRONMENT_MACOS: >-
             CXX="ccache g++"
-            LIB_CACHE="$(pwd)/lib-cache"
+            LIB_CACHE="${{ steps.work-dir.outputs.dir }}/lib-cache"
             CPATH="$(pwd)/lib-root/include"
             LIBRARY_PATH="$(pwd)/lib-root/lib:$(pwd)/lib-root/lib64"
           CIBW_BEFORE_ALL_MACOS: >
@@ -86,10 +87,15 @@ jobs:
           # VCPKG_BINARY_SOURCES from: https://learn.microsoft.com/en-us/vcpkg/consume/binary-caching-github-actions-cache
           CIBW_ENVIRONMENT_WINDOWS: >- 
             VCPKG_BINARY_SOURCES="clear;x-gha,readwrite" 
-            LIBRARY_PATH="C:\\vcpkg\\installed\\x64-windows\\lib"
-            CPATH="C:\\vcpkg\\installed\\x64-windows\\include"
+            LIBRARY_PATH="C:/vcpkg/installed/x64-windows/lib"
+            CPATH="C:/vcpkg/installed/x64-windows/include"
           CIBW_BEFORE_ALL_WINDOWS: >
             vcpkg install hdf5 eigen3 highway
+          CIBW_BEFORE_BUILD_WINDOWS: >
+            pip install delvewheel &&
+            dir C:\vcpkg\installed\x64-windows\bin
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >-
+            delvewheel repair --add-path C:/vcpkg/installed/x64-windows/bin --wheel-dir {dest_dir} {wheel} 
 
       - uses: actions/upload-artifact@v4
         with:
@@ -121,7 +127,7 @@ jobs:
         path: dist/
 
   publish-to-testpypi:
-    name: Publish Python 🐍 distribution 📦 to TestPyPI
+    name: Publish Python package to TestPyPI
     needs:
     - build-wheels
     - build-sdist

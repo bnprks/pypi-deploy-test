@@ -16,8 +16,9 @@ fi
 # Check for cached files
 if [ ! -z "${LIB_CACHE+x}" ] && [ -f "${LIB_CACHE}/hwy/lib64/libhwy.a" ]; then
     echo "Copying hwy from cache"
+    mkdir -p "$INSTALL_DIR"/include "$INSTALL_DIR"/lib
     cp -r "${LIB_CACHE}"/hwy/include/* "$INSTALL_DIR"/include
-    cp "${LIB_CACHE}"/hwy/lib64/libhwy.a "$INSTALL_DIR"/lib64 
+    cp "${LIB_CACHE}"/hwy/lib*/libhwy.a "$INSTALL_DIR"/lib 
     exit 0;
 fi
 

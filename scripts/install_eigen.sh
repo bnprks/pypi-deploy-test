@@ -8,11 +8,10 @@ else
     INSTALL_DIR="/usr/local"
 fi
 
-echo $LIB_CACHE
-
 # Check for cached files
 if [ ! -z "${LIB_CACHE+x}" ] && [ -f "${LIB_CACHE}/eigen/include/Eigen/Core" ]; then
     echo "Copying Eigen from cache"
+    mkdir -p "$INSTALL_DIR/include"
     cp -r "${LIB_CACHE}/eigen/include/Eigen" "$INSTALL_DIR/include"
     exit 0;
 fi

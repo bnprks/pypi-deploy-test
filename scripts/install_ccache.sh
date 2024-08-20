@@ -8,11 +8,10 @@ else
     INSTALL_DIR="/usr/local"
 fi
 
-echo $LIB_CACHE
-
 # Check for cached files
 if [ ! -z "${LIB_CACHE+x}" ] && [ -f "${LIB_CACHE}/ccache" ]; then
     echo "Copying ccache from cache"
+    mkdir -p "$INSTALL_DIR/bin"
     cp -r "${LIB_CACHE}/ccache" "$INSTALL_DIR/bin"
     exit 0;
 fi

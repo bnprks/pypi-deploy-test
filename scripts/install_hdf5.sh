@@ -11,6 +11,7 @@ fi
 # Check for cached files
 if [ ! -z "${LIB_CACHE+x}" ] && [ -f "${LIB_CACHE}/hdf5/lib/libhdf5.so" ]; then
     echo "Copying hdf5 from cache"
+    mkdir -p "$INSTALL_DIR"/include "$INSTALL_DIR"/lib 
     cp "${LIB_CACHE}"/hdf5/include/* "$INSTALL_DIR"/include
     cp "${LIB_CACHE}"/hdf5/lib/* "$INSTALL_DIR"/lib 
     exit 0;
