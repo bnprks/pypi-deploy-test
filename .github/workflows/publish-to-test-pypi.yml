@@ -1,7 +1,8 @@
 name: Publish Python 🐍 distribution 📦 to TestPyPI
 
-on: workflow_dispatch
- 
+#on: workflow_dispatch
+on: push
+
 jobs:
   build-wheels:
     name: Build wheels on ${{ matrix.os }}
@@ -10,22 +11,85 @@ jobs:
       matrix:
         # macos-13 is an intel runner, macos-14 is apple silicon
         os: [ubuntu-latest, windows-latest, macos-13, macos-14]
-        # os: [ubuntu-latest]
 
     steps:
       - uses: actions/checkout@v4
 
+      - name: Get work dir
+        id: work-dir
+        run: echo "dir=$(pwd)" >> "$GITHUB_OUTPUT"
+            
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install platformdirs
+
+      # Step credit: https://github.com/Cryptex-github/ril-py/blob/main/.github/workflows/py-binding.yml
+      - name: Display cibuildwheel cache dir
+        id: cibuildwheel-cache
+        run: |
+          from platformdirs import user_cache_path
+          import os
+
+          with open(os.getenv('GITHUB_OUTPUT'), 'w') as f:
+            f.write(f"dir={str(user_cache_path(appname='cibuildwheel', appauthor='pypa'))}")
+        shell: python
+
+      - name: Cache cibuildwheel 
+        id: cache-cibuildwheel
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.cibuildwheel-cache.outputs.dir }}
+          key: cibuildwheel-cache-${{ matrix.os }}
+        
+      - name: Cache dependency libs
+        id: cache-libs
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.work-dir.outputs.dir }}/lib-cache
+          key: lib-cache-${{ matrix.os }}
+      
+      # From: https://learn.microsoft.com/en-us/vcpkg/consume/binary-caching-github-actions-cache
+      - name: Export GitHub Actions cache environment variables for vcpkg
+        uses: actions/github-script@v7
+        if: ${{ matrix.os }} == 'windows-latest'
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.1
-        # with:
-        #   package-dir: python
-        # env:
-        #   CIBW_SOME_OPTION: value
-        #    ...
-        # with:
-        #   package-dir: .
-        #   output-dir: wheelhouse
-        #   config-file: "{package}/pyproject.toml"
+        env:
+          CIBW_ENVIRONMENT_LINUX: >-
+            CXX="ccache g++"
+            LIB_CACHE="$(pwd)/lib-cache"
+          CIBW_BEFORE_ALL_LINUX: >
+            LIB_CACHE=/host/$LIB_CACHE bash {package}/scripts/install_ccache.sh &&
+            LIB_CACHE=/host/$LIB_CACHE bash {package}/scripts/install_eigen.sh &&
+            LIB_CACHE=/host/$LIB_CACHE bash {package}/scripts/install_hdf5.sh &&
+            LIB_CACHE=/host/$LIB_CACHE bash {package}/scripts/install_highway.sh
+
+          CIBW_ENVIRONMENT_MACOS: >-
+            CXX="ccache g++"
+            LIB_CACHE="$(pwd)/lib-cache"
+            CPATH="$(pwd)/lib-root/include"
+            LIBRARY_PATH="$(pwd)/lib-root/lib:$(pwd)/lib-root/lib64"
+          CIBW_BEFORE_ALL_MACOS: >
+            brew install ccache &&
+            mkdir -p $LIB_CACHE &&
+            bash {package}/scripts/install_eigen.sh $(pwd)/lib-root &&
+            bash {package}/scripts/install_hdf5.sh $(pwd)/lib-root &&
+            bash {package}/scripts/install_highway.sh $(pwd)/lib-root
+          
+          # VCPKG_BINARY_SOURCES from: https://learn.microsoft.com/en-us/vcpkg/consume/binary-caching-github-actions-cache
+          CIBW_ENVIRONMENT_WINDOWS: >- 
+            VCPKG_BINARY_SOURCES="clear;x-gha,readwrite" 
+            LIBRARY_PATH="C:\\vcpkg\\installed\\x64-windows\\lib"
+            CPATH="C:\\vcpkg\\installed\\x64-windows\\include"
+          CIBW_BEFORE_ALL_WINDOWS: >
+            vcpkg install hdf5 eigen3 highway
 
       - uses: actions/upload-artifact@v4
         with:
@@ -49,6 +113,7 @@ jobs:
         --user
     - name: Build a source tarball
       run: python3 -m build --sdist
+      
     - name: Store the distribution packages
       uses: actions/upload-artifact@v4
       with:
