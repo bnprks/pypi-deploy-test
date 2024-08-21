@@ -20,6 +20,7 @@ PYBIND11_MODULE(cpp, m) {
     m.def("hwy_target", &example_package::current_target);
     m.def("hdf5_version", &example_package::hdf5_version);
     m.def("eigen_version", &example_package::eigen_version);
+    m.def("zlib_version", &example_package::example_zlib_version);
 
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);

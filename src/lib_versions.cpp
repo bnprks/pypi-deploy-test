@@ -1,6 +1,6 @@
 #include <Eigen/src/Core/util/Macros.h>
 #include <H5public.h>
-
+#include <zlib.h>
 
 #include <string>
 
@@ -14,6 +14,10 @@ std::string hdf5_version() {
 
 std::string eigen_version() {
     return std::to_string(EIGEN_WORLD_VERSION) + "." + std::to_string(EIGEN_MAJOR_VERSION) + "." + std::to_string(EIGEN_MINOR_VERSION);
+}
+
+std::string example_zlib_version() {
+    return std::string(zlibVersion());
 }
 
 }
