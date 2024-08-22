@@ -13,6 +13,7 @@
 #include "add.h"
 #include "hwy_target.h"
 #include "lib_versions.h"
+#include "filesystem.h"
 
 PYBIND11_MODULE(cpp, m) {
 
@@ -21,6 +22,7 @@ PYBIND11_MODULE(cpp, m) {
     m.def("hdf5_version", &example_package::hdf5_version);
     m.def("eigen_version", &example_package::eigen_version);
     m.def("zlib_version", &example_package::example_zlib_version);
+    m.def("path_exists", &example_package::path_exists);
 
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);

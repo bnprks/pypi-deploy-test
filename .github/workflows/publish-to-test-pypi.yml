@@ -76,6 +76,8 @@ jobs:
             LIB_CACHE="${{ steps.work-dir.outputs.dir }}/lib-cache"
             CPATH="$(pwd)/lib-root/include"
             LIBRARY_PATH="$(pwd)/lib-root/lib:$(pwd)/lib-root/lib64"
+            MACOSX_DEPLOYMENT_TARGET="10.13"
+            ${{ matrix.os == 'macos-13' && 'CFLAGS="-DFORCE_CPP17_EXPERIMENTAL_FILESYSTEM"' || '' }}
           CIBW_BEFORE_ALL_MACOS: >
             brew install ccache &&
             mkdir -p $LIB_CACHE &&

@@ -28,6 +28,12 @@ else:
     if "LIBRARY_PATH" in os.environ:
         library_dirs.extend(os.environ["LIBRARY_PATH"].split(":"))
 
+if "CFLAGS" in os.environ:
+    extra_compile_args.extend(os.environ["CFLAGS"].split())
+    print(f"CFLAGS={os.environ['CFLAGS']}")
+else:
+    print("CFLAGS not set")
+
 if "CPATH" in os.environ:
     print(f"CPATH={os.environ['CPATH']}")
 else:
